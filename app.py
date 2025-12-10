@@ -264,6 +264,7 @@ with Inputs_col:
             st.write("Exception:", str(e))
             return f"{row.get('EMP_NAME', 'UNKNOWN')} (error)"
 
+    st.write("manager_emp_df columns:", list(manager_emp_df.columns))
     manager_emp_df["LABEL"] = manager_emp_df.apply(label_row, axis=1)
     emp_choice = st.selectbox("Select team member", manager_emp_df["LABEL"])
     row = manager_emp_df[manager_emp_df["LABEL"] == emp_choice].iloc[0]
