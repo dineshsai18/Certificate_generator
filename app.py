@@ -250,9 +250,9 @@ with Inputs_col:
     #    return f"{row['EMP_NAME']} ({status})"
     
     def label_row(row):
-    exists = certificate_exists_in_s3(str(row["EMP_NAME"]))
-    status = "generated" if exists else "not generated"
-    return f"{row['EMP_NAME']} ({status})"
+        exists = certificate_exists_in_s3(str(row["EMP_NAME"]))
+        status = "generated" if exists else "not generated"
+        return f"{row['EMP_NAME']} ({status})"
 
     manager_emp_df["LABEL"] = manager_emp_df.apply(label_row, axis=1)
     emp_choice = st.selectbox("Select team member", manager_emp_df["LABEL"])
