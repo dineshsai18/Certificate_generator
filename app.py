@@ -249,10 +249,20 @@ with Inputs_col:
     #    status = "generated" if pd.notna(row["GENERATED_AT"]) else "not generated"
     #    return f"{row['EMP_NAME']} ({status})"
     
+    #def label_row(row):
+    #    exists = certificate_exists_in_s3(str(row["EMP_NAME"]))
+    #    status = "generated" if exists else "not generated"
+    #    return f"{row['EMP_NAME']} ({status})"
+
     def label_row(row):
-        exists = certificate_exists_in_s3(str(row["EMP_NAME"]))
+    try:
+        exists = certificate_exists_in_s3_for_name(row["EMP_NAME"])
         status = "generated" if exists else "not generated"
         return f"{row['EMP_NAME']} ({status})"
+    except Exception as e:
+        st.write("Error in label_row for row:", dict(row))
+        st.write("Exception:", str(e))
+        return f"{row.get('EMP_NAME', 'UNKNOWN')} (error)"
 
     manager_emp_df["LABEL"] = manager_emp_df.apply(label_row, axis=1)
     emp_choice = st.selectbox("Select team member", manager_emp_df["LABEL"])
