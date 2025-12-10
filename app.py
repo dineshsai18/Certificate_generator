@@ -17,7 +17,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # ----- Page config -----
 st.set_page_config(layout="wide")
 st.title("Group Enterprise Analytics")
-st.write("Year-End Appreciation Certificates (Local Version)")
+st.write("Year-End Appreciation Certificates")
 
 # ----- Helpers -----
 
