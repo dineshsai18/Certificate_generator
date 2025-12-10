@@ -182,20 +182,20 @@ def save_certificate_to_s3(png_bytes: bytes, key: str):
         ContentType="image/png",
     )
 
-def certificate_exists_in_s3(emp_id: str) -> bool:
+def certificate_exists_in_s3(emp_name: str) -> bool:
     s3_conf = st.secrets["s3"]
     s3 = get_s3_client()
-    key = f"Gen_certificates/certificate_{row['EMP_NAME']}.png"
+    key = f"Gen_certificates/certificate_{emp_name}.png"
     try:
         s3.head_object(Bucket=s3_conf["bucket"], Key=key)
         return True
     except s3.exceptions.ClientError:
         return False
 
-def load_certificate_from_s3(emp_id: str) -> bytes | None:
+def load_certificate_from_s3(emp_name: str) -> bytes | None:
     s3_conf = st.secrets["s3"]
     s3 = get_s3_client()
-    key = f"Gen_certificates/certificate_{row['EMP_NAME']}.png"
+    key = f"Gen_certificates/certificate_{emp_name}.png"
     try:
         obj = s3.get_object(Bucket=s3_conf["bucket"], Key=key)
         return obj["Body"].read()
