@@ -1,4 +1,4 @@
-EMP_ID ,EMP_NAME ,MANAGER_NAME ,CERT_LINE ,GENERATED_AT ,GENERATED_BY 
+EMP_ID,EMP_NAME,MANAGER_NAME,CERT_LINE,GENERATED_AT,GENERATED_BY
 1,Abhishek Bhargavan,Harshay,,,
 2,Akash Prakash Patrekar,Jacob,,,
 3,Akhila Uppala,Durga,,,
