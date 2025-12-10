@@ -256,7 +256,7 @@ with Inputs_col:
 
     def label_row(row):
         try:
-            exists = certificate_exists_in_s3_for_name(row["EMP_NAME"])
+            exists = certificate_exists_in_s3(row["EMP_NAME"])
             status = "generated" if exists else "not generated"
             return f"{row['EMP_NAME']} ({status})"
         except Exception as e:
