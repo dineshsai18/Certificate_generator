@@ -249,22 +249,22 @@ with Inputs_col:
     #    status = "generated" if pd.notna(row["GENERATED_AT"]) else "not generated"
     #    return f"{row['EMP_NAME']} ({status})"
     
-    #def label_row(row):
-    #    exists = certificate_exists_in_s3(row["EMP_NAME"])
-    #    status = "generated" if exists else "not generated"
-    #    return f"{row['EMP_NAME']} ({status})"
-
     def label_row(row):
-        try:
-            exists = certificate_exists_in_s3(row["EMP_NAME"])
-            status = "generated" if exists else "not generated"
-            return f"{row['EMP_NAME']} ({status})"
-        except Exception as e:
-            st.write("Error in label_row for row:", dict(row))
-            st.write("Exception:", str(e))
-            return f"{row.get('EMP_NAME', 'UNKNOWN')} (error)"
+        exists = certificate_exists_in_s3(row["EMP_NAME"])
+        status = "generated" if exists else "not generated"
+        return f"{row['EMP_NAME']} ({status})"
 
-    st.write("manager_emp_df columns:", list(manager_emp_df.columns))
+    #def label_row(row):
+    #    try:
+    #        exists = certificate_exists_in_s3(row["EMP_NAME"])
+    #        status = "generated" if exists else "not generated"
+    #        return f"{row['EMP_NAME']} ({status})"
+    #    except Exception as e:
+    #        st.write("Error in label_row for row:", dict(row))
+    #        st.write("Exception:", str(e))
+    #        return f"{row.get('EMP_NAME', 'UNKNOWN')} (error)"
+    #
+    #st.write("manager_emp_df columns:", list(manager_emp_df.columns))
     manager_emp_df["LABEL"] = manager_emp_df.apply(label_row, axis=1)
     emp_choice = st.selectbox("Select team member", manager_emp_df["LABEL"])
     row = manager_emp_df[manager_emp_df["LABEL"] == emp_choice].iloc[0]
