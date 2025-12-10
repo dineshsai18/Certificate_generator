@@ -1,7 +1,7 @@
 import io
 from pathlib import Path
 from datetime import datetime
-
+import boto3
 import pandas as pd
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
@@ -160,6 +160,49 @@ def load_dataframes():
     mgr_df = pd.read_csv(mgr_path)
     return emp_df, mgr_df
 
+def get_s3_client():
+    s3_conf = st.secrets["s3"]
+    return boto3.client(
+        "s3",
+        aws_access_key_id=s3_conf["aws_access_key_id"],
+        aws_secret_access_key=s3_conf["aws_secret_access_key"],
+        region_name=s3_conf["region"],
+    )
+
+def save_certificate_to_s3(png_bytes: bytes, key: str):
+    """
+    key example: 'Gen_certificates/certificate_EMPNAME.png'
+    """
+    s3_conf = st.secrets["s3"]
+    s3 = get_s3_client()
+    s3.put_object(
+        Bucket=s3_conf["bucket"],
+        Key=key,
+        Body=png_bytes,
+        ContentType="image/png",
+    )
+
+def certificate_exists_in_s3(emp_id: str) -> bool:
+    s3_conf = st.secrets["s3"]
+    s3 = get_s3_client()
+    key = f"Gen_certificates/certificate_{row['EMP_NAME']}.png"
+    try:
+        s3.head_object(Bucket=s3_conf["bucket"], Key=key)
+        return True
+    except s3.exceptions.ClientError:
+        return False
+
+def load_certificate_from_s3(emp_id: str) -> bytes | None:
+    s3_conf = st.secrets["s3"]
+    s3 = get_s3_client()
+    key = f"Gen_certificates/certificate_{row['EMP_NAME']}.png"
+    try:
+        obj = s3.get_object(Bucket=s3_conf["bucket"], Key=key)
+        return obj["Body"].read()
+    except s3.exceptions.ClientError:
+        return None
+
+
 def save_employees(emp_df: pd.DataFrame):
     emp_path = DATA_DIR / "employees.csv"
     emp_df.to_csv(emp_path, index=False)
@@ -202,9 +245,14 @@ with Inputs_col:
         st.warning("No team members found for this manager.")
         st.stop()
 
+    #def label_row(row):
+    #    status = "generated" if pd.notna(row["GENERATED_AT"]) else "not generated"
+    #    return f"{row['EMP_NAME']} ({status})"
+    
     def label_row(row):
-        status = "generated" if pd.notna(row["GENERATED_AT"]) else "not generated"
-        return f"{row['EMP_NAME']} ({status})"
+    exists = certificate_exists_in_s3(str(row["EMP_NAME"]))
+    status = "generated" if exists else "not generated"
+    return f"{row['EMP_NAME']} ({status})"
 
     manager_emp_df["LABEL"] = manager_emp_df.apply(label_row, axis=1)
     emp_choice = st.selectbox("Select team member", manager_emp_df["LABEL"])
@@ -234,10 +282,11 @@ with Certificate_col:
 
     with Sample:
         emp_name = row["EMP_NAME"]
-        generated_file = OUTPUT_DIR / f"certificate_{emp_name}.png"
-        if generated_file.exists():
-            st.caption("Already generated. You can regenerate.")
-            st.image(str(generated_file))
+        existing_png = load_certificate_from_s3(str(emp_name))
+
+        if existing_png is not None:
+            st.caption("Already generated (from S3). You can regenerate.")
+            st.image(existing_png)
         else:
             sample_path = ASSETS_DIR / "sample_certificate.png"
             if sample_path.exists():
@@ -245,6 +294,18 @@ with Certificate_col:
                 st.image(str(sample_path))
             else:
                 st.caption("Certificate not generated yet.")
+            
+        #generated_file = OUTPUT_DIR / f"certificate_{emp_name}.png"
+        #if generated_file.exists():
+        #    st.caption("Already generated. You can regenerate.")
+        #    st.image(str(generated_file))
+        #else:
+        #    sample_path = ASSETS_DIR / "sample_certificate.png"
+        #    if sample_path.exists():
+        #        st.caption("Certificate not generated yet. Sample template below.")
+        #        st.image(str(sample_path))
+        #    else:
+        #        st.caption("Certificate not generated yet.")
 
     with Certificate:
         if st.button("Generate certificate"):
@@ -255,10 +316,13 @@ with Certificate_col:
             )
 
             # Save to output folder
-            file_name = f"certificate_{row['EMP_NAME']}.png"
-            out_path = OUTPUT_DIR / file_name
-            with open(out_path, "wb") as f:
-                f.write(png_bytes)
+            # file_name = f"certificate_{row['EMP_NAME']}.png"
+            # out_path = OUTPUT_DIR / file_name
+            # with open(out_path, "wb") as f:
+            #     f.write(png_bytes)
+                
+            s3_key = f"Gen_certificates/certificate_{row['EMP_NAME']}.png"
+            save_certificate_to_s3(png_bytes, s3_key)
 
             # Update dataframe and CSV (mark generated)
             emp_df.loc[emp_df["EMP_ID"] == row["EMP_ID"], "GENERATED_AT"] = datetime.now().isoformat()
@@ -271,6 +335,6 @@ with Certificate_col:
             st.download_button(
                 label="Download PNG",
                 data=png_bytes,
-                file_name=f"certificate_{row['EMP_ID']}.png",
+                file_name=f"certificate_{row['EMP_NAME']}.png",
                 mime="image/png",
             )
