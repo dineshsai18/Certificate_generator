@@ -286,7 +286,8 @@ with Inputs_col:
 
 with Certificate_col:
     st.header("Write a catchy one liner about the team member")
-    cert_line = st.text_input(" ", value=row.get("CERT_LINE", "") or "")
+    #cert_line = st.text_input(" ", value=row.get("CERT_LINE", "") or "")
+    cert_line = st.text_input(" ", value=(row.get("CERT_LINE") or ""))
     st.caption(" ")
 
     Sample, Certificate = st.columns([3, 7])
