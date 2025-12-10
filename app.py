@@ -250,7 +250,7 @@ with Inputs_col:
     #    return f"{row['EMP_NAME']} ({status})"
     
     def label_row(row):
-        exists = certificate_exists_in_s3(row["EMP_NAME"]))
+        exists = certificate_exists_in_s3(row["EMP_NAME"])
         status = "generated" if exists else "not generated"
         return f"{row['EMP_NAME']} ({status})"
 
