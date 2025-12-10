@@ -287,7 +287,7 @@ with Inputs_col:
 with Certificate_col:
     st.header("Write a catchy one liner about the team member")
     #cert_line = st.text_input(" ", value=row.get("CERT_LINE", "") or "")
-    cert_line = st.text_input(" ", value=(row.get("CERT_LINE") or ""))
+    cert_line = st.text_input(" ", value="")
     st.caption(" ")
 
     Sample, Certificate = st.columns([3, 7])
@@ -337,9 +337,9 @@ with Certificate_col:
             save_certificate_to_s3(png_bytes, s3_key)
 
             # Update dataframe and CSV (mark generated)
-            emp_df.loc[emp_df["EMP_ID"] == row["EMP_ID"], "GENERATED_AT"] = datetime.now().isoformat()
-            emp_df.loc[emp_df["EMP_ID"] == row["EMP_ID"], "GENERATED_BY"] = manager
-            emp_df.loc[emp_df["EMP_ID"] == row["EMP_ID"], "CERT_LINE"] = cert_line
+            #emp_df.loc[emp_df["EMP_ID"] == row["EMP_ID"], "GENERATED_AT"] = datetime.now().isoformat()
+            #emp_df.loc[emp_df["EMP_ID"] == row["EMP_ID"], "GENERATED_BY"] = manager
+            #emp_df.loc[emp_df["EMP_ID"] == row["EMP_ID"], "CERT_LINE"] = cert_line
             save_employees(emp_df)
 
             st.success("Certificate generated & saved. Download below.")
