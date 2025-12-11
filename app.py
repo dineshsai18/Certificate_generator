@@ -270,7 +270,7 @@ with Inputs_col:
     row = manager_emp_df[manager_emp_df["LABEL"] == emp_choice].iloc[0]
 
     # Photo choice from local photos folder
-    photo_files = list_photo_files()
+    photo_files = sorted(list_photo_files())
     if not photo_files:
         st.error("No photos found in the 'photos' folder.")
         st.stop()
