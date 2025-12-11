@@ -276,7 +276,7 @@ with Inputs_col:
         st.stop()
 
     photo_options = photo_files
-    photo_choice = st.selectbox("Type to Search the Photo", photo_options, index=None)
+    photo_choice = st.selectbox("Choose the Photo [Type to search]", photo_options, index=None)
 
     if photo_choice is None:
         st.stop()
