@@ -275,8 +275,8 @@ with Inputs_col:
         st.error("No photos found in the 'photos' folder.")
         st.stop()
 
-    photo_options = ["-- Select photo --"] + photo_files
-    photo_choice = st.selectbox("Choose the Photo", photo_options, index=0)
+    photo_options = ["-- Type to search photo --"] + photo_files
+    photo_choice = st.selectbox("Choose the Photo", photo_options, index=None)
 
     if photo_choice == "-- Select photo --":
         st.stop()
