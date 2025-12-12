@@ -67,11 +67,9 @@ for idx, emp in enumerate(employees):
     col = cols[idx % GRID_COLS]
     with col:
         is_open = st.session_state["open_idx"] == idx
-        
-        if st.expander(emp["name"], expanded=is_open):
 
         # Button that sets which card is open
-        # if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
+        if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
             select_emp(idx)
             st.rerun()  # ensure layout refresh so only one stays open
 
