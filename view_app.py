@@ -32,7 +32,7 @@ def list_generated_certificates():
     employees.sort(key=lambda x: x["name"].lower())
     return employees
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=300, show_spinner=False) 
 def load_certificate_bytes_by_key(key: str) -> bytes | None:
     s3_conf = st.secrets["s3"]
     s3 = get_s3_client()
