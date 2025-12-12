@@ -68,24 +68,24 @@ for idx, emp in enumerate(employees):
     with col:
         is_open = st.session_state["open_idx"] == idx
         
-        with st.expander(emp["name"], expanded=is_open):
+        if st.expander(emp["name"], expanded=is_open):
 
-            # Button that sets which card is open
-            if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
-                select_emp(idx)
-                st.rerun()  # ensure layout refresh so only one stays open
+        # Button that sets which card is open
+        # if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
+            select_emp(idx)
+            st.rerun()  # ensure layout refresh so only one stays open
 
-            # “Flipped” view: show certificate only for active card
-            if is_open:
-                cert_bytes = load_certificate_bytes_by_key(emp["key"])
-                if cert_bytes:
-                    st.image(cert_bytes, use_column_width=True)
-                    st.download_button(
-                        "Download",
-                        data=cert_bytes,
-                        file_name=emp["key"].split("/")[-1],
-                        mime="image/png",
-                        key=f"dl_{idx}",
-                    )
-                else:
-                    st.error("Could not load certificate.")
+        # “Flipped” view: show certificate only for active card
+        if is_open:
+            cert_bytes = load_certificate_bytes_by_key(emp["key"])
+            if cert_bytes:
+                st.image(cert_bytes, use_column_width=True)
+                st.download_button(
+                    "Download",
+                    data=cert_bytes,
+                    file_name=emp["key"].split("/")[-1],
+                    mime="image/png",
+                    key=f"dl_{idx}",
+                )
+            else:
+                st.error("Could not load certificate.")
