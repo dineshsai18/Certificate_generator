@@ -32,6 +32,7 @@ def list_generated_certificates():
     employees.sort(key=lambda x: x["name"].lower())
     return employees
 
+@st.cache_data(ttl=300)
 def load_certificate_bytes_by_key(key: str) -> bytes | None:
     s3_conf = st.secrets["s3"]
     s3 = get_s3_client()
@@ -41,20 +42,39 @@ def load_certificate_bytes_by_key(key: str) -> bytes | None:
     except s3.exceptions.ClientError:
         return None
 
-st.title("Employee Certificates – Grid View")
-
 employees = list_generated_certificates()
 if not employees:
     st.info("No certificates found in S3 under `Gen_certificates/`.")
     st.stop()
 
+st.title("Employee Certificates – Grid Flip Style")
+
 GRID_COLS = 4
 cols = st.columns(GRID_COLS)
+
+# Track which employee index is currently open
+if "open_idx" not in st.session_state:
+    st.session_state["open_idx"] = None
+
+def select_emp(idx):
+    # If clicking the same index, close it; else open new one
+    if st.session_state["open_idx"] == idx:
+        st.session_state["open_idx"] = None
+    else:
+        st.session_state["open_idx"] = idx
 
 for idx, emp in enumerate(employees):
     col = cols[idx % GRID_COLS]
     with col:
-        with st.expander(emp["name"], expanded=False):
+        is_open = st.session_state["open_idx"] == idx
+
+        # Button that sets which card is open
+        if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
+            select_emp(idx)
+            st.rerun()  # ensure layout refresh so only one stays open
+
+        # “Flipped” view: show certificate only for active card
+        if is_open:
             cert_bytes = load_certificate_bytes_by_key(emp["key"])
             if cert_bytes:
                 st.image(cert_bytes, use_column_width=True)
