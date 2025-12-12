@@ -47,7 +47,7 @@ if not employees:
     st.info("No certificates found in S3 under `Gen_certificates/`.")
     st.stop()
 
-st.title("Employee Certificates – Grid Flip Style")
+st.title("Thank you Team - We sailed through 2025")
 
 GRID_COLS = 4
 cols = st.columns(GRID_COLS)
