@@ -36,15 +36,21 @@ def list_generated_certificates():
     prefix = "Gen_certificates/"
     resp = s3.list_objects_v2(Bucket=s3_conf["bucket"], Prefix=prefix)
 
+    # Debug info visible in the app if needed
+    # st.write("Raw S3 list_objects_v2 response:", resp)
+
+    contents = resp.get("Contents", [])
+    if not contents:
+        return []
+
     employees = []
-    for obj in resp.get("Contents", []):
-        key = obj["Key"]
-        if key.endswith("/"):
+    for obj in contents:
+        key = obj.get("Key")
+        if not key or key.endswith("/"):
             continue
 
-        # Example key: Gen_certificates/certificate_Ravi_Kumar.png
-        filename = key.split("/")[-1]          # certificate_Ravi_Kumar.png
-        name_part = os.path.splitext(filename)[0]  # certificate_Ravi_Kumar
+        filename = key.split("/")[-1]               # certificate_Ravi_Kumar.png
+        name_part = os.path.splitext(filename)[0]   # certificate_Ravi_Kumar
 
         if name_part.startswith("certificate_"):
             emp_name = name_part.replace("certificate_", "", 1)
@@ -75,14 +81,13 @@ def load_certificate_bytes_by_key(key: str) -> bytes | None:
 st.set_page_config(page_title="Certificate Viewer", layout="wide")
 st.title("Employee Certificate Viewer")
 
-st.write(
-    "Browse all employees whose certificates have been generated and stored in S3."
-)
+st.write("Browse all employees whose certificates have been generated and stored in S3.")
 
 employees = list_generated_certificates()
 
 if not employees:
-    st.info("No certificates found in S3 under `Gen_certificates/`.")
+    st.info("No certificates found in S3 under `Gen_certificates/`. "
+            "Check bucket name, prefix, and that files actually exist there.")
     st.stop()
 
 st.subheader("Click an employee to view their certificate")
@@ -90,7 +95,6 @@ st.subheader("Click an employee to view their certificate")
 GRID_COLS = 4
 cols = st.columns(GRID_COLS)
 
-# Keep selected employee in session state
 selected_emp = st.session_state.get("selected_emp")
 
 for idx, emp in enumerate(employees):
@@ -107,9 +111,7 @@ if selected_emp:
     cert_bytes = load_certificate_bytes_by_key(selected_emp["key"])
 
     if cert_bytes:
-        # Show image full-width
         st.image(cert_bytes, caption=selected_emp["name"], use_column_width=True)
-        # Optional download
         st.download_button(
             label="Download certificate",
             data=cert_bytes,
