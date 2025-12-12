@@ -32,7 +32,7 @@ def list_generated_certificates():
     employees.sort(key=lambda x: x["name"].lower())
     return employees
 
-@st.cache_data(ttl=300, show_spinner=False) 
+@st.cache_data(ttl=300, show_spinner=False)
 def load_certificate_bytes_by_key(key: str) -> bytes | None:
     s3_conf = st.secrets["s3"]
     s3 = get_s3_client()
@@ -49,41 +49,45 @@ if not employees:
 
 st.title("Thank you Team - We sailed through 2025")
 
-GRID_COLS = 4
-cols = st.columns(GRID_COLS)
+# ---------- LEFT (names) / RIGHT (preview) ----------
 
-# Track which employee index is currently open
-if "open_idx" not in st.session_state:
-    st.session_state["open_idx"] = None
+left, right = st.columns([1, 2])  # adjust ratio as you like [web:83][web:108]
 
-def select_emp(idx):
-    # If clicking the same index, close it; else open new one
-    if st.session_state["open_idx"] == idx:
-        st.session_state["open_idx"] = None
+# track selected employee index
+if "selected_idx" not in st.session_state:
+    st.session_state["selected_idx"] = None
+
+with left:
+    st.subheader("Team members")
+    GRID_COLS = 2  # grid only in the left column
+    cols = st.columns(GRID_COLS)
+
+    for idx, emp in enumerate(employees):
+        col = cols[idx % GRID_COLS]
+        with col:
+            is_selected = st.session_state["selected_idx"] == idx
+            # simple visual cue for selection
+            label = f"▶ {emp['name']}" if is_selected else emp["name"]
+            if st.button(label, key=f"btn_{idx}", use_container_width=True):
+                st.session_state["selected_idx"] = idx if not is_selected else None
+
+with right:
+    st.subheader("Certificate preview")
+    sel_idx = st.session_state.get("selected_idx")
+
+    if sel_idx is None:
+        st.info("Click a name on the left to view their certificate.")
     else:
-        st.session_state["open_idx"] = idx
-
-for idx, emp in enumerate(employees):
-    col = cols[idx % GRID_COLS]
-    with col:
-        is_open = st.session_state["open_idx"] == idx
-
-        # Button that sets which card is open
-        if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
-            select_emp(idx)
-            st.rerun()  # ensure layout refresh so only one stays open
-
-        # “Flipped” view: show certificate only for active card
-        if is_open:
-            cert_bytes = load_certificate_bytes_by_key(emp["key"])
-            if cert_bytes:
-                st.image(cert_bytes, use_column_width=True)
-                st.download_button(
-                    "Download",
-                    data=cert_bytes,
-                    file_name=emp["key"].split("/")[-1],
-                    mime="image/png",
-                    key=f"dl_{idx}",
-                )
-            else:
-                st.error("Could not load certificate.")
+        emp = employees[sel_idx]
+        cert_bytes = load_certificate_bytes_by_key(emp["key"])
+        if cert_bytes:
+            st.image(cert_bytes, caption=emp["name"], use_column_width=True)
+            st.download_button(
+                "Download certificate",
+                data=cert_bytes,
+                file_name=emp["key"].split("/")[-1],
+                mime="image/png",
+                key=f"dl_{sel_idx}",
+            )
+        else:
+            st.error("Could not load certificate. Please try again.")
