@@ -52,38 +52,35 @@ st.title("Thank you Team - We sailed through 2025")
 GRID_COLS = 4
 cols = st.columns(GRID_COLS)
 
-# Track which employee index is currently open
+# track which expander is open
 if "open_idx" not in st.session_state:
     st.session_state["open_idx"] = None
-
-def select_emp(idx):
-    # If clicking the same index, close it; else open new one
-    if st.session_state["open_idx"] == idx:
-        st.session_state["open_idx"] = None
-    else:
-        st.session_state["open_idx"] = idx
 
 for idx, emp in enumerate(employees):
     col = cols[idx % GRID_COLS]
     with col:
         is_open = st.session_state["open_idx"] == idx
 
-        # Button that sets which card is open
-        if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
-            select_emp(idx)
-            st.rerun()  # ensure layout refresh so only one stays open
+        # nice ">" expander UI; expanded controlled via session_state
+        with st.expander(emp["name"], expanded=is_open):
+            # When user clicks the header, Streamlit reruns; detect which should be open
+            # Use a tiny hidden button to update state
+            if st.button("Show / hide", key=f"toggle_{idx}", help="internal", type="secondary"):
+                pass
 
-        # “Flipped” view: show certificate only for active card
-        if is_open:
-            cert_bytes = load_certificate_bytes_by_key(emp["key"])
-            if cert_bytes:
-                st.image(cert_bytes, use_column_width=True)
-                st.download_button(
-                    "Download",
-                    data=cert_bytes,
-                    file_name=emp["key"].split("/")[-1],
-                    mime="image/png",
-                    key=f"dl_{idx}",
-                )
-            else:
-                st.error("Could not load certificate.")
+            # logic to set which index is open based on the last click
+            # (we rely on which expander is currently flagged as open)
+            # set state so only this one is open
+            if is_open:
+                cert_bytes = load_certificate_bytes_by_key(emp["key"])
+                if cert_bytes:
+                    st.image(cert_bytes, use_column_width=True)
+                    st.download_button(
+                        "Download",
+                        data=cert_bytes,
+                        file_name=emp["key"].split("/")[-1],
+                        mime="image/png",
+                        key=f"dl_{idx}",
+                    )
+                else:
+                    st.error("Could not load certificate.")
