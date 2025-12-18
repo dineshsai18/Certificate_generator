@@ -67,7 +67,8 @@ for idx, emp in enumerate(employees):
     col = cols[idx % GRID_COLS]
     with col:
         is_open = st.session_state["open_idx"] == idx
-
+        
+        label = f"▶ {emp['name']}" if is_open else emp["name"]
         # Button that sets which card is open
         if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
             select_emp(idx)
