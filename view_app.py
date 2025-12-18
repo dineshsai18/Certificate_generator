@@ -70,7 +70,7 @@ for idx, emp in enumerate(employees):
         
         label = f"▶ {emp['name']}" if is_open else emp["name"]
         # Button that sets which card is open
-        if st.button(emp["name"], key=f"btn_{idx}", use_container_width=True):
+        if st.button(label, key=f"btn_{idx}", use_container_width=True):
             select_emp(idx)
             st.rerun()  # ensure layout refresh so only one stays open
 
